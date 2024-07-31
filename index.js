@@ -22,19 +22,17 @@ app.use("/uploads", express.static("uploads"));
 app.get("/banners", (req, res) => {
   models.Banner.findAll({ limit: 2 })
     .then((result) => {
-      res.send({
-        banners:result,
-      })
+      res.json({ banners: result });
     })
     .catch((error) => {
       console.error(error);
-      res.status(500).send("에러가 발생했습니다")
+      res.status(500).send("에러가 발생했습니다");
     });
 });
 
 app.get("/products", (req, res) => {
   models.Product.findAll({
-    order: [["createdAt", "DESC"]], //ASC
+    order: [["createdAt", "DESC"]],
     attributes: [
       "id",
       "name",
@@ -46,9 +44,7 @@ app.get("/products", (req, res) => {
     ],
   })
     .then((result) => {
-      res.send({
-        product: result,
-      });
+      res.json({ product: result });
     })
     .catch((error) => {
       console.error(error);
@@ -64,19 +60,19 @@ app.get("/products/:id", (req, res) => {
   })
     .then((result) => {
       console.log("product:", result);
-      res.send({ product: result });
+      res.json({ product: result });
     })
     .catch((error) => {
-      console.error();
-      res.send("상품조회시 에러가 발생했습니다");
+      console.error(error);
+      res.status(500).send("상품조회시 에러가 발생했습니다");
     });
 });
 
 app.post("/image", upload.single("image"), function (req, res) {
   const file = req.file;
   console.log(file);
-  res.send({
-    imageUrl: file.path,
+  res.json({
+    imageUrl: `${req.protocol}://${req.get('host')}/${file.path}`,
   });
 });
 
@@ -84,12 +80,12 @@ app.post("/products", (req, res) => {
   const body = req.body;
   const { name, price, seller, description, imageUrl } = body;
   if (!name || !price || !seller || !description) {
-    res.send("모든 필드를 입력해주세요");
+    return res.status(400).send("모든 필드를 입력해주세요");
   }
   models.Product.create({ name, price, seller, description, imageUrl })
     .then((result) => {
       console.log("상품생성결과", result);
-      res.send({ result });
+      res.status(201).json({ result });
     })
     .catch((error) => {
       console.error(error);
